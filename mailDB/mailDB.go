@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/mattn/go-sqlite3"
-	"golang.org/x/tools/go/analysis/passes/nilfunc"
 )
 
 
@@ -15,6 +14,11 @@ type EmailEntry struct{
 	Email string
 	ConfirmedAt *time.Time
 	OptOut bool
+}
+
+type GetEmailBatchParams struct{
+	Page int
+	Count int
 }
 
 
@@ -60,4 +64,110 @@ func getEntryFromRow(row *sql.Rows)(*EmailEntry, error){
 	confirmedat := time.Unix(confirmedatInt, 0)
 
 	return &EmailEntry{id, email, &confirmedat, optOut}, nil
+}
+
+func insertEmail(db *sql.DB, email string) error{
+
+	_, err := db.Exec(`
+	INSERT INTO emails(email, confirmed_at, opt_out)
+	VALUES(?, 0, false)`, email)
+
+	if err != nil{
+		log.Println(err)
+	}
+
+	return nil
+}
+
+func getEmail(db *sql.DB, email string)(*EmailEntry, error){
+	
+	rows, err := db.Query(`
+	SELECT *
+	FROM emails
+	WHERE email = ?`, email)
+
+	defer rows.Close()
+
+	if err != nil{
+
+		log.Println(err)
+		return nil, err
+	}
+
+	for rows.Next(){
+		return getEntryFromRow(rows)
+	}
+
+	return nil, nil
+}
+
+func UpdateEmail(db *sql.DB, emailEntry *EmailEntry) error{
+
+	confirmTimeInt := emailEntry.ConfirmedAt.Unix()
+
+	_, err := db.Query(`
+	INSERT INTO emails(email, confirmed_at, opt_out)
+	VALUES(?, ?, ?)
+	ON CONFLICT(email) DO
+	UPDATE SET
+	confirmed_at=? opt_out=?`,emailEntry.Email, confirmTimeInt,
+	emailEntry.OptOut, confirmTimeInt, emailEntry.OptOut)
+
+	if err != nil{
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func DeleteEmail(db *sql.DB, email string) error{
+
+	_, err := db.Query(`
+	UPDATE emails
+	SET opt_out = true
+	WHERE email = ?`, email)
+
+	if err != nil{
+		log.Println(err)
+	}
+
+	return nil
+}
+
+
+func GetEmailBatch(db *sql.DB, gp GetEmailBatchParams)([]EmailEntry, error){
+
+	emails := make([]EmailEntry, 0, gp.Count)
+
+
+	rows, err := db.Query(`
+	SELECT *
+	FROM emails
+	WHERE opt_out = false
+	ORDER BY id ASC
+	LIMIT ? OFFSET ?`, gp.Count, gp.Count * (gp.Page - 1))
+
+	defer rows.Close()
+
+	if err != nil{
+		
+		log.Println(err)
+		return nil, err
+	}
+
+	for rows.Next(){
+
+		entry, err := getEntryFromRow(rows)
+
+		if err != nil{
+			log.Println(err)
+			
+			return nil, err
+		}
+
+		emails = append(emails, *entry)
+	}
+
+	return emails, nil
 }
