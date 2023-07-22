@@ -26,7 +26,7 @@ func main() {
 		args.BindJson = ":8080"
 	}
 
-	log.Panicf("Using database: %v\n", args.dbPath)
+	log.Printf("Using database: %v\n", args.dbPath)
 
 	db, err := sql.Open("sqlite3", args.dbPath)
 
