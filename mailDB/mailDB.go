@@ -3,7 +3,9 @@ package mailDB
 import (
 	"database/sql"
 	"log"
+	"os/exec"
 	"time"
+
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -26,7 +28,7 @@ func CreateDB(db *sql.DB){
 	_, err := db.Exec(`
 	CREATE TABLE emails(
 		id TEXT PRIMARY KEY,
-		email TEXT UNIQUE
+		email TEXT UNIQUE,
 		confirmed_at INTEGER,
 		opt_out INTEGER
 	);
@@ -67,9 +69,15 @@ func getEntryFromRow(row *sql.Rows)(*EmailEntry, error){
 
 func InsertEmail(db *sql.DB, email string) error{
 
-	_, err := db.Exec(`
-	INSERT INTO emails(email, confirmed_at, opt_out)
-	VALUES(?, 0, false)`, email)
+	uuid, err := exec.Command("uuidgen").Output()
+
+	if err != nil{
+		log.Println(err.Error())
+		return nil
+	}
+	_, err = db.Exec(`
+	INSERT INTO emails(id, email, confirmed_at, opt_out)
+	VALUES(?, ?, 0, false)`,string(uuid), email)
 
 	if err != nil{
 		log.Println(err)
@@ -147,13 +155,14 @@ func GetEmailBatch(db *sql.DB, gp GetEmailBatchParams)([]EmailEntry, error){
 	ORDER BY id ASC
 	LIMIT ? OFFSET ?`, gp.Count, gp.Count * (gp.Page - 1))
 
-	defer rows.Close()
 
 	if err != nil{
 		
 		log.Println(err)
 		return nil, err
 	}
+
+	defer rows.Close()
 
 	for rows.Next(){
 
