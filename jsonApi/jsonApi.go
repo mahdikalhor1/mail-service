@@ -212,9 +212,11 @@ func Serve(db *sql.DB, bind string){
 	http.Handle("email/get-batch", GetEmailBatch(db))
 	http.Handle("email/delete", DeleteEmail(db))
 
+	log.Printf("Json api server listeing on %v...\n", bind)
 	err := http.ListenAndServe(bind, nil)
 
 	if err != nil{
 		log.Fatalf("Server Error : %v", err)
 	}
+
 }

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"log"
 	"time"
-
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -36,7 +35,7 @@ func CreateDB(db *sql.DB){
 	sqlErr, ok := err.(sqlite3.Error)
 
 	if ok {
-		if sqlErr.code != 1{
+		if sqlErr.Code != 1{
 			
 			//code one indicates that the table is exists already
 			log.Fatal(sqlErr)
