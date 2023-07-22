@@ -22,7 +22,7 @@ type GetEmailBatchParams struct{
 }
 
 
-func createDB(db *sql.DB){
+func CreateDB(db *sql.DB){
 
 	_, err := db.Exec(`
 	CREATE TABLE emails(
@@ -66,7 +66,7 @@ func getEntryFromRow(row *sql.Rows)(*EmailEntry, error){
 	return &EmailEntry{id, email, &confirmedat, optOut}, nil
 }
 
-func insertEmail(db *sql.DB, email string) error{
+func InsertEmail(db *sql.DB, email string) error{
 
 	_, err := db.Exec(`
 	INSERT INTO emails(email, confirmed_at, opt_out)
@@ -79,7 +79,7 @@ func insertEmail(db *sql.DB, email string) error{
 	return nil
 }
 
-func getEmail(db *sql.DB, email string)(*EmailEntry, error){
+func GetEmail(db *sql.DB, email string)(*EmailEntry, error){
 	
 	rows, err := db.Query(`
 	SELECT *
