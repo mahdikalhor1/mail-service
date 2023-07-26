@@ -57,7 +57,7 @@ func returnEmailResponse(db *sql.DB, email string)(*proto.GetEmailResponse, erro
 	return &proto.GetEmailResponse{EmailEntry: &pbEntry}, nil
 }
 
-func(server *MailServer) InsertEmail(context context.Context, req proto.InsertEmailRequest) (*proto.GetEmailResponse, error){
+func(server *MailServer) InsertEmail(context context.Context, req *proto.InsertEmailRequest) (*proto.GetEmailResponse, error){
 	log.Printf("Grpc insert email: %v\n", req)
 
 	err := mailDB.InsertEmail(server.db, req.Email)
@@ -70,7 +70,7 @@ func(server *MailServer) InsertEmail(context context.Context, req proto.InsertEm
 	return returnEmailResponse(server.db, req.Email)
 }
 
-func(server *MailServer) UpdateEmail(context context.Context, req proto.UpdateEmailRequest) (*proto.GetEmailResponse, error){
+func(server *MailServer) UpdateEmail(context context.Context, req *proto.UpdateEmailRequest) (*proto.GetEmailResponse, error){
 	log.Printf("Grpc update email: %v\n", req)
 
 	emailEntry := pbEntryToMdbEntry(req.EmailEntry)
@@ -84,7 +84,7 @@ func(server *MailServer) UpdateEmail(context context.Context, req proto.UpdateEm
 	return returnEmailResponse(server.db, emailEntry.Email)
 }
 
-func(server *MailServer) DeleteEmail(context context.Context, req proto.DeleteEmailRequest) (*proto.GetEmailResponse, error){
+func(server *MailServer) DeleteEmail(context context.Context, req *proto.DeleteEmailRequest) (*proto.GetEmailResponse, error){
 	log.Printf("Grpc delete email: %v\n", req)
 
 	err := mailDB.DeleteEmail(server.db, req.Email)
@@ -97,13 +97,13 @@ func(server *MailServer) DeleteEmail(context context.Context, req proto.DeleteEm
 	return returnEmailResponse(server.db, req.Email)
 }
 
-func(server *MailServer) GetEmail(context context.Context, req proto.GetEmailRequest) (*proto.GetEmailResponse, error){
+func(server *MailServer) GetEmail(context context.Context, req *proto.GetEmailRequest) (*proto.GetEmailResponse, error){
 	log.Printf("Grpc insert email: %v\n", req)
 
 	return returnEmailResponse(server.db, req.Email)
 }
 
-func(server *MailServer) GetEmailBatch(context context.Context, req proto.GetEmailBatchRequest)(*proto.GetEmailBatchResponse, error){
+func(server *MailServer) GetEmailBatch(context context.Context, req *proto.GetEmailBatchRequest)(*proto.GetEmailBatchResponse, error){
 
 	params := mailDB.GetEmailBatchParams{Count: int(req.Count), Page: int(req.Page)}
 

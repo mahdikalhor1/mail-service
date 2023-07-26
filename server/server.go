@@ -29,7 +29,7 @@ func main() {
 	}
 
 	if args.BindGrpc == "" {
-		args.BindJson = ":8081"
+		args.BindGrpc = ":8081"
 	}
 
 	log.Printf("Using database: %v\n", args.dbPath)
@@ -61,7 +61,7 @@ func main() {
 	go func() {
 
 		log.Printf("Starting grpcapi server...\n")
-		grpcapi.Serve(db, args.BindJson)
+		grpcapi.Serve(db, args.BindGrpc)
 
 		wg.Done()
 	}()
