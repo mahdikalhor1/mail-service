@@ -6,7 +6,10 @@ import (
 	"log"
 	"mailService/mailDB"
 	"mailService/proto"
+	"net"
 	"time"
+
+	"google.golang.org/grpc"
 )
 
 
@@ -118,4 +121,27 @@ func(server *MailServer) GetEmailBatch(context context.Context, req proto.GetEma
 	}
 
 	return &proto.GetEmailBatchResponse{EmailEntry: emailEntries}, nil
+}
+
+func Serve(db *sql.DB, bind string){
+	listener, err := net.Listen("tcp", bind)
+
+	if err != nil{
+		log.Println("Grpc server error; failed to bind!", err)
+
+	}
+
+	grpcServer := grpc.NewServer()
+
+	mailServer := MailServer{db: db}
+
+	proto.RegisterMailingServiceServer(
+		grpcServer, &mailServer)
+
+	log.Printf("Grpc server is running on port: %v...\n", bind)
+
+	if err:= grpcServer.Serve(listener); err != nil{
+		log.Printf("Grpc server error: %v\n", err)
+	}
+
 }
